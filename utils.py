@@ -29,7 +29,10 @@ def get_challenge_data():
     return pd.read_csv(CHALLENGE_DATA)
 
 def get_invites_today():
-    df = pd.read_csv(GROUP_INVITES_DATA)
+    try:
+        df = pd.read_csv(GROUP_INVITES_DATA)
+    except FileNotFoundError:
+        return pd.DataFrame(columns=["post_id","challenge_date","inviter_id","time","location","participants"])
     today = datetime.today().strftime('%Y-%m-%d')
     return df[df["challenge_date"] == today]
 
@@ -53,7 +56,7 @@ def save_challenge(user_id, challenge):
 def make_invite(user_id, time, location):
     post_id = str(uuid.uuid4())
     date = datetime.today().strftime('%Y-%m-%d')
-    new_entry = {"post_id": post_id, "challenge_date": date, "creator_id": user_id, "time": time, "location": location, "participants": user_id}
+    new_entry = {"post_id": post_id, "challenge_date": date, "inviter_id": user_id, "time": time, "location": location, "participants": user_id}
     save_entry(GROUP_INVITES_DATA, new_entry)
 
 def join_invite(user_id, post_id):
@@ -71,7 +74,7 @@ def join_invite(user_id, post_id):
 # community mood avg (by date)
 def com_average_mood():
     df = get_mood_data().groupby("date")["mood_score"]
-    return df.mean()
+    return df.mean().reset_index()
 
 # community emotion frequencies
 def com_emotion_freq():
@@ -85,7 +88,7 @@ def com_emotion_freq():
 def com_participation_percentage():
     moods = get_mood_data()
     challenges = get_challenge_data()
-    total_users = (get_mood_data())["user_id"].nunique()
+    total_users = moods["user_id"].nunique()
     if total_users == 0:
         return 0
     

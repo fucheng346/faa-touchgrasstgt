@@ -34,9 +34,13 @@ def page_daily_challenge():
         
     st.write(st.session_state.todays_challenge)
     if st.button("Completed!"):
-        save_challenge(st.session_state.user_id, st.session_state.todays_challenge)
-        st.success(f"Great job completing today's challenge! See you tomorrow :)")
-        del st.session_state.todays_challenge
+        if not st.session_state.completed_today:
+            save_challenge(st.session_state.user_id, st.session_state.todays_challenge)
+            st.success(f"Great job completing today's challenge! See you tomorrow :)")
+            st.session_state.completed_today = True
+            del st.session_state.todays_challenge
+        else:
+            st.warning(f"You have already completed today's challenge! See you tomorrow :)")
 
     # Post creation section
     st.markdown("---")
@@ -45,7 +49,7 @@ def page_daily_challenge():
     location = st.text_input("Location")
 
     if st.button("Post invite!"):
-        make_invite(st.session_state.user_id, time, location)
+        make_invite(st.session_state.user_id, str(time), location)
         st.success("Invite posted!")
 
     st.markdown("### Make an Invite Today :)")
@@ -58,13 +62,21 @@ def page_daily_challenge():
         for _, row in invites.iterrows():
             time = row["time"]
             loc = row["location"]
-            st.write(f"{time} at {loc}")
-
             participants = row["participants"].split(",")
-            st.write(f"{len(participants)} joined")
-
+            st.markdown(f"""
+            <div style="border: 2px solid #4CAF50;
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+                background-color: #f9f9f9;
+            ">
+            <b>🕒 {time} at {loc}</b><br>
+            👥 {len(participants)} joined
+            </div>
+            """, unsafe_allow_html = True)
+            
             if st.button("Join", key = row["post_id"]):
-                join_invite(row["post_id"], st.session_state.user_id)
+                join_invite(st.session_state.user_id, row["post_id"])
                 st.success("You joined the invite!")
 
 
@@ -72,7 +84,7 @@ def page_daily_challenge():
 def page_community_dashboard():
     st.title("Community Insights")
     # Mood trend plot
-    mood_trend = com_average_mood()
+    mood_trend = com_average_mood().reset_index()
     if (not mood_trend.empty):
         st.line_chart(mood_trend)
     else:
