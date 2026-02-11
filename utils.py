@@ -74,7 +74,7 @@ def join_invite(user_id, post_id):
 # community mood avg (by date)
 def com_average_mood():
     df = get_mood_data().groupby("date")["mood_score"]
-    return df.mean().reset_index()
+    return df.mean()
 
 # community emotion frequencies
 def com_emotion_freq():

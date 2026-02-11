@@ -6,12 +6,20 @@ from utils import *
 st.set_page_config(page_title="Touch Grass Together", layout="centered")
 
 ## Placeholders
-EMOTIONS = ["Stressed", "Lonely", "Calm", "Happy", "Motivated", "Anxious"]
-CHALLENGES = ["Take a 10-minute walk today.", ""] ##### angie come up with the challenges here and can also add some more emotions
+EMOTIONS = ["Stressed", "Lonely", "Calm", "Happy", "Motivated", "Anxious", "Sad", "Hopeful"]
+CHALLENGES = ["Take a 10-minute walk today.", "Go on a run.", "Go night-cycling with your friends.", "Go on a grocery run.",
+              "Explore an area near you that you haven't been to yet.", "Visit your local museum or art gallery.",
+              "Get a drink at your favourite shop.", "Have a meal you've been craving for.", "Explore a nature trail."] 
 
 # Create a unique user ID per session
 if "user_id" not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())
+    st.session_state.completed_today = False
+
+today = datetime.today().strftime("%Y-%m-%d")
+if ("challenge_date" not in st.session_state or st.session_state.challenge_date != today):
+    st.session_state.todays_challenge = random.choice(CHALLENGES)
+    st.session_state.challenge_date = today
 
 # Initialize required files
 init_files()
@@ -29,8 +37,7 @@ def page_log_mood():
 
 def page_daily_challenge():
     st.title("🔥 Today's Challenge")
-    if "todays_challenge" not in st.session_state:
-        st.session_state.todays_challenge = random.choice(CHALLENGES)
+    
         
     st.write(st.session_state.todays_challenge)
     if st.button("Completed!"):
@@ -38,7 +45,6 @@ def page_daily_challenge():
             save_challenge(st.session_state.user_id, st.session_state.todays_challenge)
             st.success(f"Great job completing today's challenge! See you tomorrow :)")
             st.session_state.completed_today = True
-            del st.session_state.todays_challenge
         else:
             st.warning(f"You have already completed today's challenge! See you tomorrow :)")
 
@@ -69,6 +75,7 @@ def page_daily_challenge():
                 padding: 10px;
                 margin-bottom: 10px;
                 background-color: #f9f9f9;
+                color: black;
             ">
             <b>🕒 {time} at {loc}</b><br>
             👥 {len(participants)} joined
@@ -84,7 +91,8 @@ def page_daily_challenge():
 def page_community_dashboard():
     st.title("Community Insights")
     # Mood trend plot
-    mood_trend = com_average_mood().reset_index()
+    mood_trend = com_average_mood()
+    mood_trend = mood_trend.to_frame(name = "avg_mood")
     if (not mood_trend.empty):
         st.line_chart(mood_trend)
     else:
