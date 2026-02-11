@@ -19,17 +19,16 @@ init_files()
 ### Page functions
 def page_log_mood():
     st.title("🌤 Mood Logger")
-    mood = st.slider("How good are you feeling today? :)", 1, 5)
+    mood = st.slider("How are you feeling today? :)", 1, 5)
     emotions = st.multiselect("Select emotions", EMOTIONS)
     reflection = st.text_area("Reflection (optional)")
 
     if st.button("Submit"):
         save_mood(st.session_state.user_id, mood, emotions, reflection)
-        st.success(f"Mood saved!")
+        st.success("Mood saved!")
 
 def page_daily_challenge():
     st.title("🔥 Today's Challenge")
-
     if "todays_challenge" not in st.session_state:
         st.session_state.todays_challenge = random.choice(CHALLENGES)
         
@@ -39,25 +38,56 @@ def page_daily_challenge():
         st.success(f"Great job completing today's challenge! See you tomorrow :)")
         del st.session_state.todays_challenge
 
+    # Post creation section
+    st.markdown("---")
+    st.subheader("🤝 Touch Grass Together - find friends to complete the challenge together!")
+    time = st.time_input("Time")
+    location = st.text_input("Location")
+
+    if st.button("Post invite!"):
+        make_invite(st.session_state.user_id, time, location)
+        st.success("Invite posted!")
+
+    st.markdown("### Make an Invite Today :)")
+
+    # Join invite section
+    invites = get_invites_today()
+    if invites.empty:
+        st.write("No invites created yet. Be the first!")
+    else:
+        for _, row in invites.iterrows():
+            time = row["time"]
+            loc = row["location"]
+            st.write(f"{time} at {loc}")
+
+            participants = row["participants"].split(",")
+            st.write(f"{len(participants)} joined")
+
+            if st.button("Join", key = row["post_id"]):
+                join_invite(row["post_id"], st.session_state.user_id)
+                st.success("You joined the invite!")
+
+
+
 def page_community_dashboard():
     st.title("Community Insights")
     # Mood trend plot
-    mood_trend = average_mood()
+    mood_trend = com_average_mood()
     if (not mood_trend.empty):
         st.line_chart(mood_trend)
     else:
         st.write("No mood data yet...")
 
     # Emotion frequencies (bar chart)
-    emotion_data = emotion_freq()
+    emotion_data = com_emotion_freq()
     if (not emotion_data.empty):
         st.bar_chart(emotion_data)
     else:
         st.write("No emotion data yet...")
 
-    part_rate = round(participation_perc() * 100, 2)
-    mood_improve = round(mood_improvement(), 2)
-    st.metric("Participation Rate", f"{part_rate}%")
+    part_rate = round(com_participation_percentage() * 100, 2)
+    mood_improve = round(com_mood_improvement(), 2)
+    st.metric("Community Participation Rate", f"{part_rate}%")
     st.metric("Avg Mood Improvement", f"{mood_improve}")
 
 
