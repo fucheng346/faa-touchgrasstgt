@@ -13,10 +13,10 @@ def init_files():
         os.makedirs("data")
 
     if not os.path.exists(MOOD_DATA):
-        pd.DataFrame(columns = ["user_id", "date", "mood_score", "emotions", "reflection"]).to_csv(MOOD_FILE, index = False)
+        pd.DataFrame(columns = ["user_id", "date", "mood_score", "emotions", "reflection"]).to_csv(MOOD_DATA, index = False)
 
     if not os.path.exists(CHALLENGE_DATA):
-        pd.DataFrame(columns = ["user_id", "date", "challenge", "completed"]).to_csv(CHALLENGE_FILE, index = False)
+        pd.DataFrame(columns = ["user_id", "date", "challenge", "completed"]).to_csv(CHALLENGE_DATA, index = False)
 
     if not os.path.exists(GROUP_INVITES_DATA):
         pd.DataFrame(columns = ["post_id", "challenge_date", "inviter_id", "time", "location", "participants"]).to_csv(GROUP_INVITES_DATA, index = False)
