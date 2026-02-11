@@ -1,3 +1,3 @@
-open file in terminal
+open folder in terminal
 
 streamlit run app.py
